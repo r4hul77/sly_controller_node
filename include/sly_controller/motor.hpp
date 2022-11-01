@@ -18,16 +18,16 @@ class Motor{
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr mp_current_sub;
 
     float m_current;
-    float m_angular_velocity;
     float m_desired_angular_velocity;
+
+public:
 
     rclcpp::Time m_current_time;
     rclcpp::Time m_ang_vel_time;
 
-
-public:
-
     Motor();
+
+    float m_angular_velocity;
 
     Motor(std::string motor_name);
 

@@ -26,8 +26,9 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-
+include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(include/sly_controller)
 add_executable(sly_controller_node src/sly_controller_node.cpp src/motor.cpp)
 
@@ -46,6 +47,7 @@ ament_target_dependencies(
   "sensor_msgs"
   "tf2"
   "tf2_ros"
+  "Eigen3"
 )
 
 

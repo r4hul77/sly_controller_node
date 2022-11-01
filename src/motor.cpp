@@ -3,13 +3,13 @@
 
 Motor::Motor(){
     m_angular_velocity = 0;
-    m_angular_velocity_topic = "angular_velocity_topic";
+    m_angular_velocity_topic = "angular_velocity";
 
     m_current = 0;
-    m_current_topic = "current_topic";
+    m_current_topic = "current";
 
     m_desired_angular_velocity = 0;
-    m_desired_angular_velocity_topic = "desired_angular_velocity";
+    m_desired_angular_velocity_topic = "target_angular_velocity";
     
 }
 
