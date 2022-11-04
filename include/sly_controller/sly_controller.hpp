@@ -1,98 +1,31 @@
-#include "motor.hpp"
-#include <memory>
-#include <vector>
-#include <rclcpp/rclcpp.hpp>
-#include <geometry_msgs/msg/twist.hpp>
 #include "eigen3/Eigen/Core"
 #include "eigen3/Eigen/Geometry"
-#include <nav_msgs/msg/odometry.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include "tf2_ros/transform_broadcaster.h"
-#include "geometry_msgs/msg/transform_stamped.hpp"
 
-struct MotorVelsStruct{
-    std::string m_name;
-    float m_radi;
-    float m_desired_ang_vel;
-    float m_ang_vel;
-    Motor m_motor;
+class SlyController{
 
-    MotorVelsStruct(std::string, float);
+    Eigen::Vector4d m_control_vels;
 
+    Eigen::Vector2d m_target_vels;
 
-};
+    Eigen::Matrix2d m_control_mapper;
 
+    double m_radius;
 
-class sly_controller_node: public rclcpp::Node{
-    
-    std::vector<std::shared_ptr<MotorVelsStruct>> mp_motors_container;
-    
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr mp_desired_vel_sub;
-
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr mp_odom_pub;
-
-    nav_msgs::msg::Odometry m_odom_msg;
-
-    geometry_msgs::msg::TransformStamped m_odom_tf;
-
-    float m_max_angular_velocity;
-
-    float m_track_width;
-
-    float m_wheel_base;
-
-    float desired_vel;
-    float desired_ang_vel;
-
-    Eigen::Matrix<double, 6, 1> m_state;
-
-    tf2::Quaternion m_quat;
- 
-    Eigen::Matrix2d m_robot_vel_maper;
-
-    Eigen::Matrix2d m_omega_maper;
-
-    rclcpp::Time m_odom_update_time;
-
-    std::unique_ptr<tf2_ros::TransformBroadcaster> mp_tf_broadcaster;
-    
-    rclcpp::TimerBase::SharedPtr mp_timer_;
-
+    double m_track_width;
 
 public:
 
-    void declare_parameters();
+    SlyController();
 
-    sly_controller_node();
 
-    void initialize_motors();
+    SlyController(double, double);
 
-    void initialize_subs();
+    Eigen::Vector4d calculate_control(Eigen::Vector2d&);
 
-    void calculate_vels();
+    void set_radius(float&);
 
-    void publish_vels();
+    void set_track_width(float&);
 
-    void init();
-
-    void velocity_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
-
-    void publish_odom_msg();
-
-    void build_odom_msg();
-
-    void init_odom_msg();
-
-    void initialize_publishers();
-
-    void publish_tf();
-
-    void build_tf_msg();
-
-    void init_tf_msg();
-
-    void odom_loop();
-
-    void odom_update();
+    void build_control_mapper();
 
 };

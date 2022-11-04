@@ -27,10 +27,15 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(ament_cmake_gtest)
 
+
+ament_add_gtest(controller_tests test/sly_controller_test.cpp src/sly_controller.cpp)
 include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(include/sly_controller)
-add_executable(sly_controller_node src/sly_controller_node.cpp src/motor.cpp)
+
+
+add_executable(sly_controller_node src/sly_controller_node.cpp src/motor.cpp src/sly_controller.cpp)
 
 
 target_include_directories(sly_controller_node PUBLIC

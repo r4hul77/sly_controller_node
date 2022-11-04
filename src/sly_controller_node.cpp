@@ -1,4 +1,4 @@
-#include "sly_controller.hpp"
+#include "sly_controller_node.hpp"
 #include "motor.hpp"
 
 MotorVelsStruct::MotorVelsStruct(std::string motor_name, float radius):m_name(motor_name),
@@ -54,7 +54,7 @@ void sly_controller_node::init(){
   long period = (long)1000/freq;
   mp_timer_ = this->create_wall_timer(std::chrono::milliseconds(period), std::bind(&sly_controller_node::odom_loop, this));
 
-  m_robot_vel_maper << 0.5/(radi), 0.25*m_track_width/(radi), 0.5/radi, -0.25*m_track_width/radi;
+  this->mp_controller = std::make_unique<SlyController>(radi, m_track_width);
 
   m_omega_maper << radi, radi, 2*radi/m_track_width, -2*radi/m_track_width;
 
@@ -181,7 +181,7 @@ void sly_controller_node::odom_update(){
 
   m_state(3, 0) = velocity_odom(0, 0);
   
-  m_state(4, 0) = velocity_odom(1, 0); //Staet 3, 4 = velocity x and velocity y
+  m_state(4, 0) = velocity_odom(1, 0); //State 3, 4 = velocity x and velocity y
 
   m_state(5, 0) = vels(1, 0);
 
@@ -222,19 +222,19 @@ void sly_controller_node::initialize_subs(){
 }
 
 void sly_controller_node::velocity_callback(const geometry_msgs::msg::Twist::SharedPtr msg){
-  desired_vel = msg->linear.x;
-  desired_ang_vel = msg->angular.z;
-  RCLCPP_DEBUG(this->get_logger(), "Got Vel %lf and Ang Vel %lf", desired_vel, desired_ang_vel);
+  m_cmd_vels(0, 0) = msg->linear.x;
+  m_cmd_vels(1, 0) = msg->angular.z;
+  RCLCPP_DEBUG(this->get_logger(), "Got Vel %lf and Ang Vel %lf", m_cmd_vels(0, 0), m_cmd_vels(1, 0));
   calculate_vels();
 }
 
 
 void sly_controller_node::calculate_vels(){
-  Eigen::Vector2d desired_vels(desired_vel, desired_ang_vel);
-  Eigen::Vector2d vels = m_robot_vel_maper * desired_vels ;
+
+  auto vels = mp_controller->calculate_control(m_cmd_vels);
 
   for(int i = 0; i < this->mp_motors_container.size(); i++){
-    mp_motors_container[i]->m_desired_ang_vel = vels(i%2, 0);
+    mp_motors_container[i]->m_desired_ang_vel = vels(i, 0);
   }
 
   publish_vels();
