@@ -153,50 +153,60 @@ void sly_controller_node::build_odom_msg(){
 
 
 void sly_controller_node::odom_update(){
-  
-  Eigen::Vector2d omega(2, 0);
-  
-  rclcpp::Time t_ = mp_motors_container[0]->m_motor.m_ang_vel_time;
-  
-  for(int i=0; i<mp_motors_container.size(); i++){
-    omega(i%2, 0) += 0.5*mp_motors_container[i]->m_motor.m_angular_velocity;
-    t_ = t_ >= mp_motors_container[i]->m_motor.m_ang_vel_time ? mp_motors_container[i]->m_motor.m_ang_vel_time :
-    t_;
+  if(m_first_odom_update)
+  {
+    Eigen::Vector2d omega(2, 0);
+    
+    rclcpp::Time t_ = mp_motors_container[0]->m_motor.m_ang_vel_time;
+    
+    for(int i=0; i<mp_motors_container.size(); i++){
+      omega(i%2, 0) += 0.5*mp_motors_container[i]->m_motor.m_angular_velocity;
+      t_ = t_ >= mp_motors_container[i]->m_motor.m_ang_vel_time ? mp_motors_container[i]->m_motor.m_ang_vel_time :
+      t_;
+    }
+    
+    auto dt = (t_ - m_odom_update_time).seconds();
+    
+    if(dt<=0){
+      RCLCPP_ERROR(this->get_logger(), "Having an Issue with odom update dt of ang vels is %lf which is unacceptable", dt);
+      dt = 0;
+    }
+
+    m_odom_update_time = t_;
+
+    Eigen::Vector2d vels = m_omega_maper*omega; //Velocity and Omega
+    
+    Eigen::Rotation2D<double> rot_matrix(m_state(2, 0));
+
+    Eigen::Vector2d velocity_odom = rot_matrix*Eigen::Vector2d(vels(0, 0), 0);
+
+    m_state(3, 0) = velocity_odom(0, 0);
+    
+    m_state(4, 0) = velocity_odom(1, 0); //State 3, 4 = velocity x and velocity y
+
+    m_state(5, 0) = vels(1, 0);
+
+    m_state(0, 0) += velocity_odom(0, 0)*dt;
+
+    m_state(1, 0) += velocity_odom(1, 0)*dt;
+
+    m_state(2, 0) += vels(1, 0) * dt;
   }
-  
-  auto dt = (t_ - m_odom_update_time).seconds();
-  
-  if(dt<=0){
-    RCLCPP_ERROR(this->get_logger(), "Having an Issue with odom update dt of ang vels is %lf which is unacceptable", dt);
-    dt = 0;
+  else{
+    m_odom_update_time = this->now();
   }
-
-  m_odom_update_time = t_;
-
-  Eigen::Vector2d vels = m_omega_maper*omega; //Velocity and Omega
-  
-  Eigen::Rotation2D<double> rot_matrix(m_state(2, 0));
-
-  Eigen::Vector2d velocity_odom = rot_matrix*Eigen::Vector2d(vels(0, 0), 0);
-
-  m_state(3, 0) = velocity_odom(0, 0);
-  
-  m_state(4, 0) = velocity_odom(1, 0); //State 3, 4 = velocity x and velocity y
-
-  m_state(5, 0) = vels(1, 0);
-
-  m_state(0, 0) += velocity_odom(0, 0)*dt;
-
-  m_state(1, 0) += velocity_odom(1, 0)*dt;
-
-  m_state(2, 0) += vels(1, 0) * dt;
-  
 
 }
 
 void sly_controller_node::publish_odom_msg(){
   build_odom_msg();
-  mp_odom_pub->publish(m_odom_msg);
+  static bool first_pub = false;
+  if(m_first_odom_update && first_pub){
+    mp_odom_pub->publish(m_odom_msg);
+  }
+
+  if(m_first_odom_update)
+    first_pub = true;
 
 }
 
