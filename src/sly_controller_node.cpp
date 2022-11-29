@@ -156,7 +156,7 @@ void sly_controller_node::odom_update(){
   
   Eigen::Vector2d omega(2, 0);
   
-  rclcpp::Time t_ = mp_motors_container[i]->m_motor.m_ang_vel_time[0];
+  rclcpp::Time t_ = mp_motors_container[0]->m_motor.m_ang_vel_time[0];
   
   for(int i=0; i<mp_motors_container.size(); i++){
     omega(i%2, 0) += 0.5*mp_motors_container[i]->m_motor.m_angular_velocity;
