@@ -29,18 +29,21 @@ void Motor::init(rclcpp::Node* node){
 
     mp_angular_velocity_sub = node->create_subscription<std_msgs::msg::Float64>(m_angular_velocity_topic, 10,
     std::bind(&Motor::angular_vel_callback, this, std::placeholders::_1));
+    mp_parent_node = node;
 }
 
 
 void Motor::angular_vel_callback(std_msgs::msg::Float64::SharedPtr msg){
     m_angular_velocity = msg->data;
-    m_ang_vel_time = rclcpp::Clock(RCL_ROS_TIME).now();    
+    m_ang_vel_time = mp_parent_node->now();  
+    RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Ang Vel Callback Called");
 }
 
 
 void Motor::current_callback(std_msgs::msg::Float64::SharedPtr msg){
     m_current = msg->data;
-    m_ang_vel_time = rclcpp::Clock(RCL_ROS_TIME).now();
+    m_ang_vel_time = mp_parent_node->now();
+    RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Current Callback Called");
 }
 
 void Motor::publish_desired_ang_vel(float& angular_vel){
@@ -49,6 +52,8 @@ void Motor::publish_desired_ang_vel(float& angular_vel){
     message.data = angular_vel;
 
     mp_desired_angular_velocity_pub->publish(message);
+
+    RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Ang Vel Publish Called");
 
 }
 

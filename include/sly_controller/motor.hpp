@@ -20,6 +20,8 @@ class Motor{
     float m_current;
     float m_desired_angular_velocity;
 
+    rclcpp::Node* mp_parent_node;
+
 public:
 
     rclcpp::Time m_current_time;

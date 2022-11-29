@@ -63,10 +63,10 @@ void sly_controller_node::init(){
   int i = 0;
   for(auto& motor_name: motor_names){
     mp_motors_container[i%4] = std::make_shared<MotorVelsStruct>(motor_name, radi);
-    i++;
     if(i > 3){
       RCLCPP_ERROR(this->get_logger(), "More Than Four Motor Names Defined The Controller Will Not Work !!");
     }
+    i++;
   }
 
 
