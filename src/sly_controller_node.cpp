@@ -156,7 +156,7 @@ void sly_controller_node::odom_update(){
   
   Eigen::Vector2d omega(2, 0);
   
-  rclcpp::Time t_ = rclcpp::Time::max();
+  rclcpp::Time t_ = mp_motors_container[i]->m_motor.m_ang_vel_time[0];
   
   for(int i=0; i<mp_motors_container.size(); i++){
     omega(i%2, 0) += 0.5*mp_motors_container[i]->m_motor.m_angular_velocity;
@@ -164,7 +164,7 @@ void sly_controller_node::odom_update(){
     t_;
   }
   
-  auto dt = t_.seconds() - m_odom_update_time.seconds();
+  auto dt = (t_ - m_odom_update_time).seconds();
   
   if(dt<=0){
     RCLCPP_ERROR(this->get_logger(), "Having an Issue with odom update dt of ang vels is %lf which is unacceptable", dt);
