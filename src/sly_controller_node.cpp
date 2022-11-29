@@ -60,6 +60,8 @@ void sly_controller_node::init(){
 
   m_state << 0, 0, 0, 0, 0, 0;
 
+  m_first_odom_update = false;
+
   int i = 0;
   for(auto& motor_name: motor_names){
     mp_motors_container[i%4] = std::make_shared<MotorVelsStruct>(motor_name, radi);
@@ -194,6 +196,7 @@ void sly_controller_node::odom_update(){
   }
   else{
     m_odom_update_time = this->now();
+    m_first_odom_update = true;
   }
 
 }
