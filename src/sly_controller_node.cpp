@@ -164,18 +164,16 @@ void sly_controller_node::odom_update(){
     t_ = t_ >= mp_motors_container[i]->m_motor.m_ang_vel_time ? mp_motors_container[i]->m_motor.m_ang_vel_time :
     t_;
   }
-  
+  double dt = 0;
   if(m_first_odom_update)
   { 
-    auto dt = (t_ - m_odom_update_time).seconds();
+    dt = (t_ - m_odom_update_time).seconds();
     
     if(dt<=0){
       RCLCPP_ERROR(this->get_logger(),"Having an Issue with odom update dt of ang vels is %lf which is unacceptable", dt);
+      dt = 0;
     }
   }
-  else
-    double dt = 0.0;
-
 
 
   m_odom_update_time = t_;
