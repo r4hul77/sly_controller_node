@@ -35,7 +35,7 @@ void Motor::init(rclcpp::Node* node){
 
 void Motor::angular_vel_callback(std_msgs::msg::Float64::SharedPtr msg){
     m_angular_velocity = msg->data;
-    m_ang_vel_time = mp_parent_node->now();  
+    m_ang_vel_time = mp_parent_node->now(); 
     RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Ang Vel Callback Called");
 }
 

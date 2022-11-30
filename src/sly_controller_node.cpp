@@ -88,9 +88,7 @@ void sly_controller_node::init(){
 
 
 void sly_controller_node::init_odom_msg(){
-  m_odom_update_time = this->get_clock()->now();
   
-  m_odom_msg.header.stamp = m_odom_update_time;
   m_odom_msg.header.frame_id = "odom";
 
   build_odom_msg();
