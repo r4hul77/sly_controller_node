@@ -232,8 +232,8 @@ void sly_controller_node::initialize_subs(){
 }
 
 void sly_controller_node::velocity_callback(const geometry_msgs::msg::Twist::SharedPtr msg){
-  m_cmd_vels(0, 0) = msg->linear.x;
-  m_cmd_vels(1, 0) = msg->angular.z;
+  m_cmd_vels(0) = msg->linear.x;
+  m_cmd_vels(1) = msg->angular.z;
   RCLCPP_DEBUG(this->get_logger(), "Got Vel %lf and Ang Vel %lf", m_cmd_vels(0, 0), m_cmd_vels(1, 0));
   calculate_vels();
 }
@@ -242,9 +242,15 @@ void sly_controller_node::velocity_callback(const geometry_msgs::msg::Twist::Sha
 void sly_controller_node::calculate_vels(){
 
   auto vels = mp_controller->calculate_control(m_cmd_vels);
+  RCLCPP_DEBUG(this->get_logger(), "Got Vel %lf and Ang Vel %lf in Calculate Vels", m_cmd_vels(0), m_cmd_vels(1));
+  for(int i = 0; i < 4; i++)
+    RCLCPP_DEBUG(this->get_logger(), "Vels(%d, 0)= %lf", i, vels(i));
+
 
   for(int i = 0; i < this->mp_motors_container.size(); i++){
-    mp_motors_container[i]->m_desired_ang_vel = vels(i, 0);
+    mp_motors_container[i]->m_desired_ang_vel = vels(i);
+    RCLCPP_DEBUG(this->get_logger(), "Publishing Angular Velocity %f for %s", mp_motors_container[i]->m_desired_ang_vel, mp_motors_container[i]->m_name.c_str());
+    mp_motors_container[i]->m_motor.publish_desired_ang_vel(mp_motors_container[i]->m_desired_ang_vel);
   }
 
   publish_vels();
@@ -253,9 +259,10 @@ void sly_controller_node::calculate_vels(){
 
 void sly_controller_node::publish_vels(){
 
-  for(auto& motorstruct:mp_motors_container){
+  /*for(auto& motorstruct:mp_motors_container){
+    RCLCPP_DEBUG(this->get_logger(), "Publishing Angular Velocity %f for %s", motorstruct->m_desired_ang_ve, motorstruct.m_name.c_str());
     motorstruct->m_motor.publish_desired_ang_vel(motorstruct->m_desired_ang_vel);
-  }
+  }*/
 
 }
 

@@ -34,4 +34,9 @@ SlyController::SlyController(){
 SlyController::SlyController(double radius, double track_width){
     m_radius = radius;
     m_track_width = track_width;
+    build_control_mapper();
+}
+
+Eigen::Matrix2d SlyController::get_control_mapper(){
+    return m_control_mapper;
 }
