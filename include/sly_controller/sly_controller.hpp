@@ -28,4 +28,6 @@ public:
 
     void build_control_mapper();
 
+    Eigen::Matrix2d get_control_mapper();
+
 };

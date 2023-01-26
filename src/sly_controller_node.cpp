@@ -163,7 +163,7 @@ void sly_controller_node::odom_update(){
     t_;
   }
   double dt = 0;
-  if(m_first_odom_update)
+  if(m_first_odom_update_done)
   { 
     dt = t_.seconds() - m_odom_update_time.seconds();
     
@@ -194,7 +194,7 @@ void sly_controller_node::odom_update(){
 
   m_state(2, 0) += vels(1, 0) * dt;
 
-  m_first_odom_update = true;
+  m_first_odom_update_done = true;
 
 }
 

@@ -41,6 +41,4 @@ Eigen::Matrix<double, 6, 1>  SlyEstimator::estimate(Eigen::Vector4d cmd_vels, do
 
 void SlyEstimator::build_mapper(){
 
-
-    
 }

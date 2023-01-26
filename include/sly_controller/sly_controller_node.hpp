@@ -59,7 +59,7 @@ class sly_controller_node: public rclcpp::Node{
     
     rclcpp::TimerBase::SharedPtr mp_timer_;
 
-    bool m_first_odom_update;
+    bool m_first_odom_update_done;
 
 public:
 
