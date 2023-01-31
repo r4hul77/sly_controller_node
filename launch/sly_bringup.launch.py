@@ -143,10 +143,17 @@ def generate_launch_description():
 
     imu_launch = get_imu_launch()
 
+    imu_lifecycle_manager = Node(
+        package='sly_controller',
+        executable='lifecycle_manager_node',
+        output="log",
+    )
+
     return LaunchDescription([
         motor_control,
         sly_controller_node,
         *teleop_launch,
         *gps_launch,
-        *imu_launch
+        *imu_launch,
+        imu_lifecycle_manager
     ])
