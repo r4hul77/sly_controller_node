@@ -28,6 +28,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(ament_cmake_gtest)
+find_package(lifecycle_msgs REQUIRED)
 
 
 ament_add_gtest(controller_tests test/sly_controller_test.cpp src/sly_controller.cpp)
@@ -37,6 +38,7 @@ include_directories(include/sly_controller)
 
 add_executable(sly_controller_node src/sly_controller_node.cpp src/motor.cpp src/sly_controller.cpp)
 
+add_executable(lifecycle_manager_node src/lifecyle_manager.cpp)
 
 target_include_directories(sly_controller_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -55,10 +57,20 @@ ament_target_dependencies(
   "Eigen3"
 )
 
+target_include_directories(lifecycle_manager_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 
-install(TARGETS sly_controller_node
+ament_target_dependencies(
+  lifecycle_manager_node
+  "lifecycle_msgs"
+  "rclcpp"
+  "rcutils"
+)
+
+
+install(TARGETS sly_controller_node lifecycle_manager_node
   DESTINATION lib/${PROJECT_NAME})
-
 
 install(
   DIRECTORY

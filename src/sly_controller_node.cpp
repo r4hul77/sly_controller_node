@@ -60,7 +60,7 @@ void sly_controller_node::init(){
 
   m_state << 0, 0, 0, 0, 0, 0;
 
-  m_first_odom_update = false;
+  m_first_odom_update_done = false;
 
   int i = 0;
   for(auto& motor_name: motor_names){
@@ -201,11 +201,11 @@ void sly_controller_node::odom_update(){
 void sly_controller_node::publish_odom_msg(){
   build_odom_msg();
   static bool first_pub = false;
-  if(m_first_odom_update && first_pub){
+  if(m_first_odom_update_done && first_pub){
     mp_odom_pub->publish(m_odom_msg);
   }
 
-  if(m_first_odom_update)
+  if(m_first_odom_update_done)
     first_pub = true;
 
 }

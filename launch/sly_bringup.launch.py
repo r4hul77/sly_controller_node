@@ -15,19 +15,85 @@
 """Launch Gazebo with a world that has Dolly, as well as the follow node."""
 
 import os
-
+import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, EmitEvent
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LifecycleNode
 import launch
 import launch_ros
+from launch_ros.events.lifecycle import ChangeState
+
+from launch.events import matches_action
+
+from lifecycle_msgs.msg import Transition
+
+
+
+def get_gps_launch():
+    params_dic = {'port':"/dev/ttyAMA1", 
+                    'baud': 115200,
+                    'frame_id':"gps",
+                    'useRMC': False,
+                    'time_ref_source':'gps'}
+    driver_node =Node(
+        package='nmea_navsat_driver',
+        executable='nmea_serial_driver',
+        output='log',
+        parameters=[params_dic]
+    )
+    return [driver_node]
+
+def get_imu_launch():
+    pkg_name = 'microstrain_inertial_driver'
+    pkg_pth = get_package_share_directory('microstrain_inertial_driver_common')
+    params_file = os.path.join(pkg_pth, "config", "params.yml")
+
+    params_dict = {
+        'port': "/dev/ttyAMA0",
+    }
+
+    microstrain_node = LifecycleNode(
+        package = pkg_name,
+        executable="microstrain_inertial_driver_node",
+        name="imu_node",
+        namespace="",
+        parameters=[
+                yaml.safe_load(open(params_file, r)),
+                params_dict
+        ]
+
+    )
+
+    config_event = EmitEvent(
+        event=ChangeState(
+            lifecycle_node_matcher= matches_action(microstrain_node),
+            transition_id= Transition.TRANSITION_CONFIGURE,
+        )
+    )
+
+
+    activate_event = EmitEvent(
+        event=ChangeState(
+            lifecycle_node_matcher=matches_action(microstrain_node),
+            transition_id=Transition.TRANSITION_ACTIVATE,
+        )
+    )
+
+    imu_launch = [
+        microstrain_node,
+        config_event,
+        activate_event
+        ]
+
+    return imu_launch
+
+
 
 
 def generate_launch_description():
     pkg_motor_control = get_package_share_directory('motor_control')
-    pkg_telop_joy = get_package_share_directory('teleop_twist_joy')
     
     
     joy_config = launch.substitutions.LaunchConfiguration('joy_config')
@@ -73,8 +139,14 @@ def generate_launch_description():
 
     )
 
+    gps_launch = get_gps_launch()
+
+    imu_launch = get_imu_launch()
+
     return LaunchDescription([
         motor_control,
         sly_controller_node,
-        *teleop_launch
+        *teleop_launch,
+        *gps_launch,
+        *imu_launch
     ])
