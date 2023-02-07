@@ -47,11 +47,11 @@ def get_gps_launch():
 
 def get_imu_launch():
     pkg_name = 'microstrain_inertial_driver'
-    pkg_pth = get_package_share_directory('microstrain_inertial_driver_common')
-    params_file = os.path.join(pkg_pth, "config", "params.yml")
+    pkg_pth = get_package_share_directory(pkg_name)
+    params_file = os.path.join(pkg_pth, "microstrain_inertial_driver_common", "config", "params.yml")
 
     params_dict = {
-        'port': "/dev/ttyAMA0",
+        'port': "/dev/gx5_navbox_imu",
     }
 
     microstrain_node = LifecycleNode(
@@ -60,7 +60,7 @@ def get_imu_launch():
         name="imu_node",
         namespace="",
         parameters=[
-                yaml.safe_load(open(params_file, r)),
+                yaml.safe_load(open(params_file, 'r')),
                 params_dict
         ]
 
@@ -134,7 +134,7 @@ def generate_launch_description():
     sly_controller_node = Node(
         package='sly_controller',
         executable='sly_controller_node',
-        arguments=['--ros-args', '--log-level', 'debug'],
+        arguments=['--ros-args', '--log-level', 'warn'],
         output="log",
 
     )
@@ -146,7 +146,7 @@ def generate_launch_description():
     imu_lifecycle_manager = Node(
         package='sly_controller',
         executable='lifecycle_manager_node',
-        output="log",
+        output="screen",
     )
 
     return LaunchDescription([
@@ -155,5 +155,5 @@ def generate_launch_description():
         *teleop_launch,
         *gps_launch,
         *imu_launch,
-        imu_lifecycle_manager
+        #imu_lifecycle_manager
     ])
