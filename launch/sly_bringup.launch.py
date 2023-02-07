@@ -51,7 +51,7 @@ def get_imu_launch():
     params_file = os.path.join(pkg_pth, "microstrain_inertial_driver_common", "config", "params.yml")
 
     params_dict = {
-        'port': "/dev/gx5_navbox_imu",
+        'port': "/dev/cx5_nav_box_imu",
     }
 
     microstrain_node = LifecycleNode(
