@@ -18,18 +18,49 @@ import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, EmitEvent
+from launch.actions import IncludeLaunchDescription, EmitEvent, OpaqueFunction, ExecuteProcess, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, LifecycleNode
 import launch
 import launch_ros
 from launch_ros.events.lifecycle import ChangeState
 
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch.events import matches_action
-
+import copy
 from lifecycle_msgs.msg import Transition
+import xacro
 
 
+
+def get_ros2_bag_launch():
+    record_data_argument = DeclareLaunchArgument('record_data', default_value='true', description="set it to false to not to record data")
+    home_loc = os.getenv('HOME')
+    output_location = DeclareLaunchArgument('output_location', default_value=os.path.join(home_loc, 'ros_bag'), description="set the directory to record ros2_bag")
+
+    def check_for_output_location(context, *args, **kwargs):
+        output_location = LaunchConfiguration("output_location").perform(context=context)
+        location = copy.copy(output_location)
+        flag = True
+        i = 1 
+        while flag:
+            flag = os.path.exists(location)
+            if(flag):
+                location = output_location + str(i)
+                i += 1
+        print(f"Writing to {location}")
+        ros2_bag_process = ExecuteProcess(
+            cmd=['ros2', 'bag', 'record','-o', location, '-a'],
+            condition=IfCondition(LaunchConfiguration('record_data'))
+        )
+
+        return [ros2_bag_process]
+
+    ros2_bag = OpaqueFunction(function=check_for_output_location)
+
+
+    return [record_data_argument, output_location, ros2_bag]
 
 def get_gps_launch():
     params_dic = {'port':"/dev/ttyAMA1", 
@@ -45,13 +76,35 @@ def get_gps_launch():
     )
     return [driver_node]
 
+def get_robot_state_publisher_launch():
+
+    pkg_sly_description = get_package_share_directory('sly_description')
+
+    xacro_file = os.path.join(pkg_sly_description, "urdf", "sly_bot.xacro")
+
+    robot_desc_xacro = xacro.process_file(xacro_file)
+    
+    robot_desc = robot_desc_xacro.toxml()
+
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[
+            {
+                'robot_description': robot_desc,
+            }
+        ]
+    )
+
+    return [robot_state_publisher_node]
+
 def get_imu_launch():
     pkg_name = 'microstrain_inertial_driver'
     pkg_pth = get_package_share_directory(pkg_name)
     params_file = os.path.join(pkg_pth, "microstrain_inertial_driver_common", "config", "params.yml")
 
     params_dict = {
-        'port': "/dev/cx5_nav_box_imu",
+        'port': "/dev/ttyACM0",
     }
 
     microstrain_node = LifecycleNode(
@@ -130,6 +183,8 @@ def generate_launch_description():
             ),
     ]
 
+    ros_bag = launch.action
+
     # SLY Controller
     sly_controller_node = Node(
         package='sly_controller',
@@ -149,11 +204,17 @@ def generate_launch_description():
         output="screen",
     )
 
+    robot_state_publisher = get_robot_state_publisher_launch()
+
+    ros2_bag_launch = get_ros2_bag_launch()
+
     return LaunchDescription([
         motor_control,
         sly_controller_node,
         *teleop_launch,
         *gps_launch,
         *imu_launch,
-        #imu_lifecycle_manager
+        #imu_lifecycle_manager,
+        *robot_state_publisher,
+        *ros2_bag_launch,
     ])
