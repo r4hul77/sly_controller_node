@@ -165,9 +165,9 @@ void sly_controller_node::odom_update(){
   double dt = 0;
   if(m_first_odom_update_done)
   { 
-    dt = t_.seconds() - m_odom_update_time.seconds();
+    dt = t_.nanoseconds() - m_odom_update_time.seconds();
     
-    if(dt<=0){
+    if(dt<0){
       RCLCPP_ERROR(this->get_logger(),"Having an Issue with odom update dt of ang vels is %lf which is unacceptable", dt);
       dt = 0;
     }

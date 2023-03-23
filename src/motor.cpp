@@ -42,7 +42,7 @@ void Motor::angular_vel_callback(std_msgs::msg::Float64::SharedPtr msg){
 
 void Motor::current_callback(std_msgs::msg::Float64::SharedPtr msg){
     m_current = msg->data;
-    m_ang_vel_time = mp_parent_node->now();
+    m_ang_vel_time = mp_parent_node->get_clock()->now();
     RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Current Callback Called");
 }
 
