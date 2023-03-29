@@ -30,12 +30,13 @@ void Motor::init(rclcpp::Node* node){
     mp_angular_velocity_sub = node->create_subscription<std_msgs::msg::Float64>(m_angular_velocity_topic, 10,
     std::bind(&Motor::angular_vel_callback, this, std::placeholders::_1));
     mp_parent_node = node;
+    m_ang_vel_time = mp_parent_node->get_clock()->now();
 }
 
 
 void Motor::angular_vel_callback(std_msgs::msg::Float64::SharedPtr msg){
     m_angular_velocity = msg->data;
-    m_ang_vel_time = mp_parent_node->now(); 
+    m_ang_vel_time = mp_parent_node->get_clock()->now(); 
     RCLCPP_INFO_STREAM(mp_parent_node->get_logger(), "Ang Vel Callback Called");
 }
 
